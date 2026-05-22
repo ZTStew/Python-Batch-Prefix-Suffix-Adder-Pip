@@ -14,14 +14,19 @@ import argparse, glob, os, sys
 
 
 def main():
-  # default test state
-  test = False
-  # default prefix value
-  prefix = ""
-  # default suffix value
-  suffix = ""
-  # default target type
-  target = "file"
+  user_arguments = {
+    # default test state
+    "test" : False,
+    # default prefix value
+    "prefix" : "",
+    # default suffix value
+    "suffix" : "",
+    # default target type
+    "target" : "file"
+  }
+
+  # tracks errors generated in program
+  errors = []
 
   test_help_text = """
     (Optional) Declair if the application should run in test mode [0 -> production (default) | 1 -> test mode].
@@ -62,19 +67,62 @@ def main():
   )
   # command line option for specifying file type restriction
   args.add_argument(
-    "-ty",
-    "--type",
     "-tr",
     "--target",
+    "-ty",
+    "--type",
     type=str,
     help=target_type_help_text
   )
   # gets `args` from command line
   args = args.parse_args()
 
-  print(args)
+  # processes `args`
+  
+  # test
+  try:
+    # defines if the program will run in test mode or not
+    if int(args.test) > 0:
+      user_arguments["test"] = True
+  except Exception as e:
+    errors.append(e)
 
-  # # # processes `args` and returns dictionary
+  # prefix
+  try:
+    if args.prefix:
+      user_arguments["prefix"] = args.prefix
+  except Exception as e:
+    errors.append(e)
+  
+  # suffix
+  try:
+    if args.suffix:
+      user_arguments["suffix"] = args.suffix
+  except Exception as e:
+    errors.append(e)
+
+  # file type
+  try:
+    if args.target:
+      user_arguments["target"] = args.target
+      # makes sure that the user specified required field
+      if user_arguments["target"].lower() != "file" and user_arguments["target"].lower() != "folder":
+        errors.append("Error: User Did Not Specify Target File Type As Either `file` or `folder`")
+
+    else:
+      errors.append("Error: User Did Not Specify Target File Type")
+
+  except Exception as e:
+    errors.append(e)
+
+  # confirms that either a prefix or suffix was given by user
+  if len(user_arguments["prefix"]) < 1 and len(user_arguments["suffix"]) < 1:
+    errors.append("Error: No Prefix Or Suffix Was Specified")
+
+
+  print(user_arguments)
+  print(errors)
+
   # arguments = process_args(args)
 
   # # kills program if an error is found in user input
